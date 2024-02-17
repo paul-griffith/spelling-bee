@@ -1,0 +1,16 @@
+body {
+    text-align: center;
+    font-size: 2em;
+}
+
+#controls, #resultsTable {
+    display: none;
+}
+
+.blur {
+    filter: blur(3rem);
+}
+
+#wordDisplay {
+    font-size: 4em;
+}
