@@ -5,174 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Spelling Practice</title>
     <link rel="stylesheet" href="style.css"/>
-    <script type="text/javascript" src="words.js"></script>
+    <script type="text/javascript" src="words.js" defer></script>
+    <script type="text/javascript" src="bee.js"></script>
 </head>
 <body>
 
-<div id="landing">
+<div id="landing" class="show">
     <label for="numWords">Number of words:</label>
     <br>
     <input type="number" id="numWords" value="10" min="1">
     <br>
-    <label for="voiceSelector">Voice:</label>
-    <br>
-    <select id="voiceSelector" onchange="selectVoice()"></select>
-    <br>
     <button id="startButton" onclick="loadWordList()">Start Practice</button>
 </div>
 
-<div id="currentWord">
+<div id="currentWord" class="hide">
     <div id="wordDisplay" class="blur"></div>
-    <div id="definition"></div>
+    <div id="definition">N/A</div>
+    <div id="sentence">N/A</div>
 </div>
 
-<div id="controls">
+<div id="controls" class="hide">
     <button id="repeat" onclick="repeatWord()">Repeat (Up)</button>
     <button id="reveal" onclick="revealWord()">Reveal (Down)</button>
     <br>
     <hr>
-    <button id="incorrect" onclick="markWord(false)">Incorrect (Left)</button>
-    <button id="correct" onclick="markWord(true)">Correct (Right)</button>
+    <button id="markIncorrect" onclick="markWord(false)">Incorrect (Left)</button>
+    <button id="markCorrect" onclick="markWord(true)">Correct (Right)</button>
 </div>
 
-<div id="resultsTable">
-
+<div id="resultsTable" class="hide">
+    <div id="correct" class="resultsColumn"></div>
+    <div id="incorrect" class="resultsColumn"></div>
 </div>
 
-<script>
-    let practiceWords = [];
-    let currentWord = '';
-    let results = [];
-    let englishVoices = [];
-    let currentVoice = undefined;
-
-    function loadWordList() {
-        const numWords = Math.min(document.getElementById('numWords').value, wordList.length);
-        practiceWords = wordList.toSorted(() => 0.5 - Math.random()).slice(0, numWords);
-        if (practiceWords.length > 0) {
-            startPractice();
-        }
-    }
-
-    function startPractice() {
-        document.getElementById('landing').style.display = 'none';
-        nextWord();
-        document.addEventListener('keydown', handleKeyPress);
-    }
-
-    function nextWord() {
-        if (practiceWords.length > 0) {
-            currentWord = practiceWords.pop();
-            let wordDisplay = document.getElementById('wordDisplay');
-            wordDisplay.classList.add("blur");
-            wordDisplay.innerText = currentWord;
-            say(currentWord);
-            document.getElementById('controls').style.display = 'block';
-            document.getElementById('reveal').style.display = 'inherit';
-            let fetchDef = fetchWordDefinition(currentWord);
-            fetchDef.then((definitions) => {
-                let innerHtml = renderDefinition(definitions);
-                console.log(innerHtml);
-                document.getElementById('definition').innerHtml = innerHtml;
-            })
-        } else {
-            finishPractice();
-        }
-    }
-
-    function markWord(status) {
-        results.push({word: currentWord, status});
-        nextWord();
-    }
-
-    function finishPractice() {
-        document.removeEventListener('keydown', handleKeyPress);
-        document.getElementById('controls').style.display = 'none';
-        document.getElementById('currentWord').style.display = 'none';
-        displayResults();
-        say("Good job Mia!");
-    }
-
-    const synth = window.speechSynthesis;
-
-    const voiceSelect = document.getElementById("voiceSelector");
-
-    function loadVoices() {
-        englishVoices = synth.getVoices().filter(value => value.lang === 'en-US');
-
-        for (let i = 0; i < englishVoices.length; i++) {
-            const voice = englishVoices[i];
-
-            const option = document.createElement("option");
-            option.textContent = `${voice.name} (${voice.lang})`;
-            option.value = i;
-            voiceSelect.appendChild(option);
-        }
-    }
-
-    // in Google Chrome the voices are not ready on page load
-    if ("onvoiceschanged" in synth) {
-        synth.onvoiceschanged = loadVoices;
-    } else {
-        loadVoices();
-    }
-
-    function selectVoice() {
-        currentVoice = englishVoices[voiceSelect.value];
-    }
-
-    function say(text) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.voice = currentVoice;
-        synth.speak(utterance);
-    }
-
-    function repeatWord() {
-        say(currentWord);
-    }
-
-    function revealWord() {
-        document.getElementById("wordDisplay").classList.remove("blur");
-        document.getElementById("reveal").style.display = 'none';
-    }
-
-    async function fetchWordDefinition(word) {
-        const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-        if (!response.ok) {
-            return {};
-        }
-        return response.json();
-    }
-
-    function renderDefinition(definitions) {
-        const firstDefinition = definitions[0]["meanings"].flatMap(meaning => meaning["definitions"])[0]
-
-        return [
-            `<b>Definition: </b>${firstDefinition["definition"]}`,
-            `<b>Sentence: </b>${firstDefinition["example"] ?? ""}`,
-        ].join("<br>");
-    }
-
-    function handleKeyPress(event) {
-        if (event.key === 'ArrowRight') {
-            markWord('correct');
-        } else if (event.key === 'ArrowLeft') {
-            markWord('incorrect');
-        } else if (event.key === 'ArrowUp') {
-            repeatWord();
-        } else if (event.key === 'ArrowDown') {
-            revealWord();
-        }
-    }
-
-    function displayResults() {
-        const correctWords = results.filter(result => result.status).map(result => result.word).join('<br>');
-        const incorrectWords = results.filter(result => !result.status).map(result => result.word).join('<br>');
-        document.getElementById('correctWords').innerHTML = correctWords;
-        document.getElementById('incorrectWords').innerHTML = incorrectWords;
-        document.getElementById('resultsTable').style.display = 'table';
-    }
-</script>
-
+<div id="footer">
+    <hr>
+    <label for="voiceSelector">Voice:</label>
+    <br>
+    <select id="voiceSelector" onchange="selectVoice()"></select>
+</div>
 </body>
 </html>

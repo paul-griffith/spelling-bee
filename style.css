@@ -1,9 +1,15 @@
 body {
     text-align: center;
     font-size: 2em;
+    min-height: 100%;
+    font-family: serif;
 }
 
-#controls, #resultsTable {
+.show {
+    display: block;
+}
+
+.hide {
     display: none;
 }
 
@@ -13,4 +19,14 @@ body {
 
 #wordDisplay {
     font-size: 4em;
+}
+
+#footer {
+    position: fixed;
+    bottom: 20px;
+    align-content: center;
+}
+
+#resultsColumn {
+    flex: 1;
 }
